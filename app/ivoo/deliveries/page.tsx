@@ -298,45 +298,45 @@ export default function IVOODeliveriesPage() {
           </div>
 
           <div className="overflow-x-auto rounded-md border border-border/50">
-            <Table className="min-w-[1200px]">
+            <Table className="table-fixed w-full min-w-[1200px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-10"></TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap w-[95px]"
                     onClick={() => handleSort("fecha")}
                   >
                     Fecha {sortField === "fecha" && (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap w-[110px]"
                     onClick={() => handleSort("nroFactura")}
                   >
                     Factura {sortField === "nroFactura" && (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap min-w-[180px]"
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap w-[180px]"
                     onClick={() => handleSort("nombreApellido")}
                   >
                     Cliente {sortField === "nombreApellido" && (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
-                  <TableHead className="whitespace-nowrap">Cedula</TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap min-w-[150px]"
+                  <TableHead className="whitespace-nowrap w-[110px]">Cedula</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap w-[150px]"
                     onClick={() => handleSort("tienda")}
                   >
                     Tienda {sortField === "tienda" && (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Productos</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Monto Factura</TableHead>
-                  <TableHead 
-                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap"
+                  <TableHead className="text-right whitespace-nowrap w-[110px]">Productos</TableHead>
+                  <TableHead className="text-right whitespace-nowrap w-[130px]">Monto Factura</TableHead>
+                  <TableHead
+                    className="cursor-pointer hover:bg-muted/50 whitespace-nowrap w-[110px]"
                     onClick={() => handleSort("estado")}
                   >
                     Estado {sortField === "estado" && (sortDirection === "asc" ? "↑" : "↓")}
                   </TableHead>
-                  <TableHead className="whitespace-nowrap">Tipo Vehiculo</TableHead>
-                  <TableHead className="text-right whitespace-nowrap">Precio Delivery</TableHead>
+                  <TableHead className="whitespace-nowrap w-[130px]">Tipo Vehiculo</TableHead>
+                  <TableHead className="text-right whitespace-nowrap w-[130px]">Precio Delivery</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

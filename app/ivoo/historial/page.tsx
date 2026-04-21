@@ -101,16 +101,20 @@ function agruparPorFactura(deliveries: DeliveryRecord[]): FacturaAgrupada[] {
 
 function calculateClientStats(deliveries: DeliveryRecord[]): ClientStats {
   // Usar clave compuesta factura + tienda para contar facturas unicas
-  const facturasUnicas = new Set(deliveries.map((d) => `${d.nroFactura}__${d.tienda}`))
+  const facturasUnicas = new Set(deliveries.map((d) => {
+    const facturaKey = d.nroFactura || `no-factura-${d.id}`
+    return `${facturaKey}__${d.tienda}`
+  }))
   const totalFacturas = facturasUnicas.size
   const totalProductos = deliveries.length
-  
+
   const facturasProcesadas = new Set<string>()
   let totalGastado = 0
   let totalDeliveryFees = 0
-  
+
   deliveries.forEach((d) => {
-    const key = `${d.nroFactura}__${d.tienda}`
+    const facturaKey = d.nroFactura || `no-factura-${d.id}`
+    const key = `${facturaKey}__${d.tienda}`
     if (!facturasProcesadas.has(key)) {
       totalGastado += d.montoFactura
       totalDeliveryFees += d.precioDelivery
@@ -127,7 +131,8 @@ function calculateClientStats(deliveries: DeliveryRecord[]): ClientStats {
   const tiendasCount: Record<string, number> = {}
   const facturasContadas = new Set<string>()
   deliveries.forEach((d) => {
-    const key = `${d.nroFactura}-${d.tienda}`
+    const facturaKey = d.nroFactura || `no-factura-${d.id}`
+    const key = `${facturaKey}-${d.tienda}`
     if (!facturasContadas.has(key)) {
       tiendasCount[d.tienda] = (tiendasCount[d.tienda] || 0) + 1
       facturasContadas.add(key)
@@ -155,7 +160,8 @@ function calculateClientStats(deliveries: DeliveryRecord[]): ClientStats {
   const estadosExitosos = ["entregado", "delivered", "completado", "complete"]
   deliveries.forEach((d) => {
     if (estadosExitosos.includes(d.estado?.toLowerCase())) {
-      facturasEntregadas.add(`${d.nroFactura}__${d.tienda}`)
+      const facturaKey = d.nroFactura || `no-factura-${d.id}`
+      facturasEntregadas.add(`${facturaKey}__${d.tienda}`)
     }
   })
   const tasaEntregaExitosa = totalFacturas > 0 ? (facturasEntregadas.size / totalFacturas) * 100 : 0
@@ -190,18 +196,19 @@ export default function IVOOHistorialClientePage() {
 
   const uniqueClients = useMemo(() => {
     const clientsMap = new Map<string, { cedula: string; nombre: string; facturas: Set<string> }>()
-    
+
     deliveryData.forEach((d) => {
       const key = d.cedula
+      const facturaKey = d.nroFactura || `no-factura-${d.id}`
       if (!clientsMap.has(key)) {
         clientsMap.set(key, {
           cedula: d.cedula,
           nombre: d.nombreApellido,
-          facturas: new Set([d.nroFactura]),
+          facturas: new Set([facturaKey]),
         })
       } else {
         const existing = clientsMap.get(key)!
-        existing.facturas.add(d.nroFactura)
+        existing.facturas.add(facturaKey)
       }
     })
 

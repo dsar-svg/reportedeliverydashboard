@@ -20,7 +20,7 @@ import {
 import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency, parseFlexibleDate, normalizeDateString } from "@/lib/dashboard-utils"
+import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
 const SHEET_RANGE = "IVOO APP!A2:S"
@@ -58,34 +58,9 @@ export default function IVOOReportesPage() {
   const metrics = useMemo(() => {
     if (deliveryData.length === 0) return null
 
-    // Agrupar por factura + tienda para obtener pedidos unicos
-    const pedidosUnicos = new Map<string, {
-      montoFactura: number
-      precioDelivery: number
-      estado: string
-      tienda: string
-      tipoVehiculo: string
-      condicionPago: string
-      fecha: string
-    }>()
-
-    deliveryData.forEach((d) => {
-      const key = `${d.nroFactura}__${d.tienda}`
-      if (!pedidosUnicos.has(key)) {
-        pedidosUnicos.set(key, {
-          montoFactura: d.montoFactura,
-          precioDelivery: d.precioDelivery,
-          estado: d.estado,
-          tienda: d.tienda,
-          tipoVehiculo: d.tipoVehiculo,
-          condicionPago: d.condicionPago,
-          fecha: d.fecha,
-        })
-      }
-    })
-
-    const pedidosArray = Array.from(pedidosUnicos.values())
-    const totalPedidos = pedidosArray.length
+    // Usar groupByFactura para mantener consistencia con el Dashboard
+    const groupedOrders = groupByFactura(deliveryData)
+    const totalPedidos = groupedOrders.length
 
     // Total de ingresos (por pedidos unicos)
     const totalIngresos = pedidosArray.reduce((sum, d) => sum + d.montoFactura, 0)
@@ -93,7 +68,7 @@ export default function IVOOReportesPage() {
 
     // Por estado (contando pedidos, no lineas)
     const porEstado: Record<string, { count: number; monto: number }> = {}
-    pedidosArray.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const estado = d.estado || "Sin estado"
       if (!porEstado[estado]) porEstado[estado] = { count: 0, monto: 0 }
       porEstado[estado].count++
@@ -102,7 +77,7 @@ export default function IVOOReportesPage() {
 
     // Por tienda (top 10) - contando pedidos unicos
     const porTienda: Record<string, { count: number; monto: number }> = {}
-    pedidosArray.forEach((d) => {
+    groupedOrders.forEach((d) => {
       if (!porTienda[d.tienda]) porTienda[d.tienda] = { count: 0, monto: 0 }
       porTienda[d.tienda].count++
       porTienda[d.tienda].monto += d.montoFactura
@@ -114,21 +89,21 @@ export default function IVOOReportesPage() {
 
     // Por tipo de vehiculo (pedidos unicos)
     const porVehiculo: Record<string, number> = {}
-    pedidosArray.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const vehiculo = d.tipoVehiculo || "Sin especificar"
       porVehiculo[vehiculo] = (porVehiculo[vehiculo] || 0) + 1
     })
 
     // Por condicion de pago (pedidos unicos)
     const porCondicionPago: Record<string, number> = {}
-    pedidosArray.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const condicion = d.condicionPago || "Sin especificar"
       porCondicionPago[condicion] = (porCondicionPago[condicion] || 0) + 1
     })
 
     // Tendencia por semana (pedidos unicos)
     const porSemana: Record<string, { pedidos: number; ingresos: number }> = {}
-    pedidosArray.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const date = parseFlexibleDate(d.fecha)
       const weekStart = new Date(date)
       weekStart.setDate(date.getDate() - date.getDay())
