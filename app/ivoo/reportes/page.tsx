@@ -63,8 +63,8 @@ export default function IVOOReportesPage() {
     const totalPedidos = groupedOrders.length
 
     // Total de ingresos (por pedidos unicos)
-    const totalIngresos = pedidosArray.reduce((sum, d) => sum + d.montoFactura, 0)
-    const totalDeliveryFees = pedidosArray.reduce((sum, d) => sum + d.precioDelivery, 0)
+    const totalIngresos = groupedOrders.reduce((sum, d) => sum + d.montoFactura, 0)
+    const totalDeliveryFees = groupedOrders.reduce((sum, d) => sum + d.precioDelivery, 0)
 
     // Por estado (contando pedidos, no lineas)
     const porEstado: Record<string, { count: number; monto: number }> = {}
