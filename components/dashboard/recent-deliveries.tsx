@@ -47,41 +47,41 @@ export function RecentDeliveries({ data }: RecentDeliveriesProps) {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <Table>
+          <Table className="table-fixed w-full">
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
-                <TableHead className="text-muted-foreground">Fecha</TableHead>
-                <TableHead className="text-muted-foreground">Factura</TableHead>
-                <TableHead className="text-muted-foreground">Cliente</TableHead>
-                <TableHead className="text-muted-foreground">Tienda</TableHead>
-                <TableHead className="text-muted-foreground">Productos</TableHead>
-                <TableHead className="text-muted-foreground">Monto</TableHead>
-                <TableHead className="text-muted-foreground">Estado</TableHead>
-                <TableHead className="text-muted-foreground">Vehiculo</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[90px]">Fecha</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[100px]">Factura</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[180px]">Cliente</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[130px]">Tienda</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[220px]">Productos</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[110px]">Monto</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[110px]">Estado</TableHead>
+                <TableHead className="text-muted-foreground whitespace-nowrap w-[110px]">Vehiculo</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {recentData.map((order) => (
                 <TableRow key={order.nroFactura} className="border-border/50">
-                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                  <TableCell className="text-muted-foreground whitespace-nowrap w-[90px]">
                     {parseFlexibleDate(order.fecha).toLocaleDateString("es-VE", {
                       day: "2-digit",
                       month: "short",
                     })}
                   </TableCell>
-                  <TableCell className="font-mono text-sm text-foreground">
+                  <TableCell className="font-mono text-sm text-foreground whitespace-nowrap w-[100px] truncate">
                     {order.nroFactura}
                   </TableCell>
-                  <TableCell className="text-foreground">
-                    <div className="min-w-[120px] max-w-[180px] break-words">
+                  <TableCell className="text-foreground w-[180px]">
+                    <div className="truncate">
                       {order.nombreApellido}
                     </div>
                   </TableCell>
-                  <TableCell className="text-foreground">
-                    {order.tienda.replace("Tienda ", "")}
+                  <TableCell className="text-foreground w-[130px]">
+                    <div className="truncate">{order.tienda.replace("Tienda ", "")}</div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    <div className="min-w-[150px] max-w-[250px]">
+                  <TableCell className="text-muted-foreground w-[220px]">
+                    <div className="truncate">
                       {order.productos.length === 1 ? (
                         <span>{order.productos[0].nombre} (x{order.productos[0].cantidad})</span>
                       ) : (
@@ -91,15 +91,17 @@ export function RecentDeliveries({ data }: RecentDeliveriesProps) {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-foreground whitespace-nowrap">
+                  <TableCell className="font-medium text-foreground whitespace-nowrap w-[110px]">
                     {formatCurrency(order.montoFactura)}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(order.estado)}>
-                      {order.estado}
-                    </Badge>
+                  <TableCell className="w-[110px]">
+                    <div className="flex justify-center">
+                      <Badge variant={getStatusVariant(order.estado)} className="whitespace-nowrap">
+                        {order.estado}
+                      </Badge>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="text-muted-foreground whitespace-nowrap w-[110px] truncate">
                     {order.tipoVehiculo}
                   </TableCell>
                 </TableRow>
