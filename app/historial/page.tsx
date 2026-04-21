@@ -29,6 +29,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, parseFlexibleDate } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
+const SHEET_RANGE = "DELIVERY TIENDA!A2:Q"
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
@@ -174,7 +176,7 @@ export default function HistorialClientePage() {
   const { data: response, isLoading } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>("/api/deliveries", fetcher)
+  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
 
   const deliveryData = response?.data || []
 

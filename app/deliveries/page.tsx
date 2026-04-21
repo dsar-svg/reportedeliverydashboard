@@ -26,6 +26,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, parseFlexibleDate, groupByFactura } from "@/lib/dashboard-utils"
 import type { DeliveryRecord, GroupedOrder } from "@/lib/types"
 
+const SHEET_RANGE = "DELIVERY TIENDA!A2:Q"
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
@@ -48,7 +50,7 @@ export default function DeliveriesPage() {
   const { data: response, isLoading, mutate } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>("/api/deliveries", fetcher)
+  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
 
   const deliveryData = response?.data || []
 

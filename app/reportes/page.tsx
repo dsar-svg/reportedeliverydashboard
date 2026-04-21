@@ -23,6 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, parseFlexibleDate, normalizeDateString } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
+const SHEET_RANGE = "DELIVERY TIENDA!A2:Q"
+
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
 const COLORS = [
@@ -44,7 +46,7 @@ export default function ReportesPage() {
   const { data: response, isLoading } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>("/api/deliveries", fetcher)
+  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
 
   const deliveryData = response?.data || []
 
