@@ -41,3 +41,5 @@ coverage/
 # OS files
 *.pem
 *.key
+
+.vercel

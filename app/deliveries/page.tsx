@@ -339,41 +339,40 @@ export default function DeliveriesPage() {
                               </Button>
                             )}
                           </TableCell>
-                          <TableCell className="text-muted-foreground whitespace-nowrap">
+                          <TableCell className="text-muted-foreground whitespace-nowrap w-[95px]">
                             {parseFlexibleDate(order.fecha).toLocaleDateString("es-VE", {
                               day: "2-digit",
                               month: "short",
                               year: "numeric"
                             })}
                           </TableCell>
-                          <TableCell className="font-medium whitespace-nowrap">{order.nroFactura}</TableCell>
-                          <TableCell>
-                            <div className="min-w-[180px] max-w-[220px] break-words">{order.nombreApellido}</div>
+                          <TableCell className="font-medium whitespace-nowrap w-[110px] truncate" title={order.nroFactura}>{order.nroFactura}</TableCell>
+                          <TableCell className="w-[180px]">
+                            <div className="truncate" title={order.nombreApellido}>{order.nombreApellido}</div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">{order.cedula}</TableCell>
-                          <TableCell>
-                            <div className="min-w-[150px] max-w-[180px] break-words">{order.tienda}</div>
+                          <TableCell className="whitespace-nowrap w-[110px] truncate" title={order.cedula}>{order.cedula}</TableCell>
+                          <TableCell className="w-[150px]">
+                            <div className="truncate" title={order.tienda}>{order.tienda}</div>
                           </TableCell>
-                          <TableCell>
-                            <div className="min-w-[200px] max-w-[350px]">
+                          <TableCell className="w-[220px]">
+                            <div className="truncate" title={hasMultipleProducts ? `${order.productos.length} productos` : order.productos[0]?.nombre}>
                               {hasMultipleProducts ? (
                                 <span className="text-sm text-muted-foreground">
                                   {order.productos.length} productos ({order.cantidadTotal} items)
-                                  <span className="ml-2 text-xs">{isExpanded ? '(click para cerrar)' : '(click para ver)'}</span>
                                 </span>
                               ) : (
                                 <span>{order.productos[0]?.nombre} (x{order.productos[0]?.cantidad})</span>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right whitespace-nowrap">{formatCurrency(order.montoFactura)}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(order.estado)}>
+                          <TableCell className="text-right whitespace-nowrap w-[130px]">{formatCurrency(order.montoFactura)}</TableCell>
+                          <TableCell className="w-[110px]">
+                            <Badge variant={getStatusVariant(order.estado)} className="whitespace-nowrap">
                               {order.estado}
                             </Badge>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">{order.tipoVehiculo}</TableCell>
-                          <TableCell className="text-right whitespace-nowrap">{formatCurrency(order.precioDelivery)}</TableCell>
+                          <TableCell className="whitespace-nowrap w-[130px] truncate" title={order.tipoVehiculo}>{order.tipoVehiculo}</TableCell>
+                          <TableCell className="text-right whitespace-nowrap w-[130px]">{formatCurrency(order.precioDelivery)}</TableCell>
                         </TableRow>
                         {/* Expanded row with product details */}
                         {isExpanded && hasMultipleProducts && (

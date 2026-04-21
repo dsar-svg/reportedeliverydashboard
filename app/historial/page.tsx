@@ -489,69 +489,63 @@ export default function HistorialClientePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto rounded-md border border-border/50">
-<Table className="table-fixed w-full">
-                    <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="whitespace-nowrap w-[90px]">Fecha</TableHead>
-                      <TableHead className="whitespace-nowrap w-[90px]">Factura</TableHead>
-                      <TableHead className="whitespace-nowrap w-[100px]">Tienda</TableHead>
-                      <TableHead className="w-[300px]">Productos</TableHead>
-                          <TableHead className="text-right whitespace-nowrap">Monto</TableHead>
-                          <TableHead className="text-right whitespace-nowrap">Delivery</TableHead>
-                          <TableHead className="whitespace-nowrap">Estado</TableHead>
+                    <Table className="table-fixed w-full min-w-[1000px]">
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="whitespace-nowrap w-[90px]">Fecha</TableHead>
+                          <TableHead className="whitespace-nowrap w-[100px]">Factura</TableHead>
+                          <TableHead className="whitespace-nowrap w-[140px]">Tienda</TableHead>
+                          <TableHead className="w-[280px]">Productos</TableHead>
+                          <TableHead className="text-right whitespace-nowrap w-[110px]">Monto</TableHead>
+                          <TableHead className="text-right whitespace-nowrap w-[100px]">Delivery</TableHead>
+                          <TableHead className="whitespace-nowrap w-[110px]">Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {facturasAgrupadas.length === 0 ? (
                           <TableRow>
-                            <TableCell
-                              colSpan={7}
-                              className="h-24 text-center text-muted-foreground"
-                            >
+                            <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                               No hay facturas registradas
                             </TableCell>
                           </TableRow>
                         ) : (
                           facturasAgrupadas.map((factura) => (
                             <TableRow key={factura.nroFactura} className="border-border/50">
-                              <TableCell className="text-muted-foreground whitespace-nowrap">
-                                {parseFlexibleDate(factura.fecha).toLocaleDateString(
-                                  "es-VE",
-                                  {
-                                    day: "2-digit",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )}
+                              <TableCell className="text-muted-foreground whitespace-nowrap w-[90px]">
+                                {parseFlexibleDate(factura.fecha).toLocaleDateString("es-VE", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
                               </TableCell>
-                              <TableCell className="font-medium whitespace-nowrap">
+                              <TableCell className="font-medium whitespace-nowrap w-[100px] truncate" title={factura.nroFactura}>
                                 {factura.nroFactura}
                               </TableCell>
-                              <TableCell title={factura.tienda}>
-                                <div className="max-w-[120px] truncate">{factura.tienda}</div>
+                              <TableCell className="w-[140px]" title={factura.tienda}>
+                                <div className="truncate">{factura.tienda}</div>
                               </TableCell>
-                              <TableCell className="max-w-[300px]">
-                                <div className="space-y-1">
+                              <TableCell className="w-[280px]">
+                                <div className="space-y-1 max-h-[100px] overflow-y-auto">
                                   {factura.productos.map((prod, idx) => (
                                     <div key={idx} className="flex items-start gap-2 text-sm">
                                       <Badge variant="outline" className="text-xs shrink-0 mt-0.5">
                                         x{prod.cantidad}
                                       </Badge>
-                                      <span className="break-words whitespace-normal overflow-hidden">
+                                      <span className="truncate flex-1" title={prod.nombre}>
                                         {prod.nombre}
                                       </span>
                                     </div>
                                   ))}
                                 </div>
                               </TableCell>
-                              <TableCell className="text-right whitespace-nowrap">
+                              <TableCell className="text-right whitespace-nowrap w-[110px]">
                                 {formatCurrency(factura.montoFactura)}
                               </TableCell>
-                              <TableCell className="text-right whitespace-nowrap">
+                              <TableCell className="text-right whitespace-nowrap w-[100px]">
                                 {formatCurrency(factura.precioDelivery)}
                               </TableCell>
-                              <TableCell>
-                                <Badge variant={getStatusVariant(factura.estado)}>
+                              <TableCell className="w-[110px]">
+                                <Badge variant={getStatusVariant(factura.estado)} className="whitespace-nowrap">
                                   {factura.estado}
                                 </Badge>
                               </TableCell>
