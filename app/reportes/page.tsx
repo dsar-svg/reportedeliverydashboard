@@ -320,29 +320,37 @@ export default function ReportesPage() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.top10Tiendas} layout="vertical" margin={{ left: 10 }}>
-                  <XAxis type="number" stroke="oklch(0.65 0 0)" fontSize={11} />
+                <BarChart data={metrics.top10Tiendas} layout="vertical" margin={{ left: 10, right: 10 }}>
+                  <XAxis type="number" stroke="oklch(0.65 0 0)" fontSize={11} hide />
                   <YAxis
                     type="category"
                     dataKey="name"
                     stroke="oklch(0.65 0 0)"
-                    fontSize={9}
-                    width={100}
-                    tickFormatter={(value: string) => 
-                      value.length > 15 ? value.substring(0, 15) + "..." : value
+                    fontSize={10}
+                    width={120}
+                    tickFormatter={(value: string) =>
+                      value.length > 18 ? value.substring(0, 18) + "..." : value
                     }
                   />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "oklch(0.16 0.005 260)",
-                      border: "1px solid oklch(0.28 0.005 260)",
+                      border: "1px solid oklch(0.35 0.005 260)",
                       borderRadius: "8px",
-                      color: "oklch(0.95 0 0)",
+                      color: "oklch(0.98 0 0)",
+                      fontSize: "13px",
+                      padding: "8px 12px",
                     }}
-                    formatter={(value: number, name: string) => [
-                      name === "monto" ? formatCurrency(value) : value,
-                      name === "monto" ? "Ingresos" : "Deliveries"
+                    labelStyle={{ color: "oklch(0.90 0 0)", fontWeight: "600", marginBottom: "4px" }}
+                    itemStyle={{ color: "oklch(0.95 0 0)" }}
+                    formatter={(value: number, name: string, item: any) => [
+                      formatCurrency(value),
+                      "Ingresos"
                     ]}
+                    labelFormatter={(label, item) => {
+                      const fullLabel = (item as any)?.payload?.name || label
+                      return fullLabel.length > 30 ? fullLabel.substring(0, 30) + "..." : fullLabel
+                    }}
                   />
                   <Bar dataKey="monto" fill="oklch(0.65 0.18 165)" radius={[0, 4, 4, 0]} />
                 </BarChart>
@@ -365,12 +373,13 @@ export default function ReportesPage() {
                     data={metrics.porEstado}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
+                    innerRadius={50}
+                    outerRadius={90}
+                    paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                     labelLine={false}
+                    nameKey="name"
                   >
                     {metrics.porEstado.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -379,11 +388,18 @@ export default function ReportesPage() {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "oklch(0.16 0.005 260)",
-                      border: "1px solid oklch(0.28 0.005 260)",
+                      border: "1px solid oklch(0.35 0.005 260)",
                       borderRadius: "8px",
-                      color: "oklch(0.95 0 0)",
+                      color: "oklch(0.98 0 0)",
+                      fontSize: "13px",
+                      padding: "8px 12px",
                     }}
-                    formatter={(value: number) => [value, "Deliveries"]}
+                    labelStyle={{ color: "oklch(0.90 0 0)", fontWeight: "600", marginBottom: "4px" }}
+                    itemStyle={{ color: "oklch(0.95 0 0)" }}
+                    formatter={(value: number, name: string, item: any) => [
+                      value,
+                      item.payload?.name || name
+                    ]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -405,12 +421,13 @@ export default function ReportesPage() {
                     data={metrics.porVehiculo}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
+                    innerRadius={50}
+                    outerRadius={90}
+                    paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                     labelLine={false}
+                    nameKey="name"
                   >
                     {metrics.porVehiculo.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -419,11 +436,18 @@ export default function ReportesPage() {
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "oklch(0.16 0.005 260)",
-                      border: "1px solid oklch(0.28 0.005 260)",
+                      border: "1px solid oklch(0.35 0.005 260)",
                       borderRadius: "8px",
-                      color: "oklch(0.95 0 0)",
+                      color: "oklch(0.98 0 0)",
+                      fontSize: "13px",
+                      padding: "8px 12px",
                     }}
-                    formatter={(value: number) => [value, "Deliveries"]}
+                    labelStyle={{ color: "oklch(0.90 0 0)", fontWeight: "600", marginBottom: "4px" }}
+                    itemStyle={{ color: "oklch(0.95 0 0)" }}
+                    formatter={(value: number, name: string, item: any) => [
+                      value,
+                      item.payload?.name || name
+                    ]}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -440,24 +464,34 @@ export default function ReportesPage() {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={metrics.porCondicionPago}>
+                <BarChart data={metrics.porCondicionPago} margin={{ top: 10, bottom: 10 }}>
                   <XAxis
                     dataKey="name"
                     stroke="oklch(0.65 0 0)"
-                    fontSize={11}
-                    tickFormatter={(value: string) => 
-                      value.length > 12 ? value.substring(0, 12) + "..." : value
+                    fontSize={10}
+                    tickFormatter={(value: string) =>
+                      value.length > 15 ? value.substring(0, 15) + "..." : value
                     }
+                    angle={-15}
+                    textAnchor="end"
+                    height={60}
                   />
                   <YAxis stroke="oklch(0.65 0 0)" fontSize={11} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: "oklch(0.16 0.005 260)",
-                      border: "1px solid oklch(0.28 0.005 260)",
+                      border: "1px solid oklch(0.35 0.005 260)",
                       borderRadius: "8px",
-                      color: "oklch(0.95 0 0)",
+                      color: "oklch(0.98 0 0)",
+                      fontSize: "13px",
+                      padding: "8px 12px",
                     }}
-                    formatter={(value: number) => [value, "Deliveries"]}
+                    labelStyle={{ color: "oklch(0.90 0 0)", fontWeight: "600", marginBottom: "4px" }}
+                    itemStyle={{ color: "oklch(0.95 0 0)" }}
+                    formatter={(value: number, name: string, item: any) => [
+                      value,
+                      item.payload?.name || name
+                    ]}
                   />
                   <Bar dataKey="value" fill="oklch(0.70 0.15 250)" radius={[4, 4, 0, 0]} />
                 </BarChart>
