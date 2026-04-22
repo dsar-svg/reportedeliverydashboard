@@ -355,14 +355,17 @@ export default function DeliveriesPage() {
                             <div className="truncate" title={order.tienda}>{order.tienda}</div>
                           </TableCell>
                           <TableCell className="w-[220px]">
-                            <div className="truncate" title={hasMultipleProducts ? `${order.productos.length} productos` : order.productos[0]?.nombre}>
-                              {hasMultipleProducts ? (
-                                <span className="text-sm text-muted-foreground">
-                                  {order.productos.length} productos ({order.cantidadTotal} items)
-                                </span>
-                              ) : (
-                                <span>{order.productos[0]?.nombre} (x{order.productos[0]?.cantidad})</span>
-                              )}
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs shrink-0">
+                                {order.productos.length} {order.productos.length === 1 ? 'prod' : 'prods'}
+                              </Badge>
+                              <span className="truncate text-sm text-muted-foreground" title={hasMultipleProducts ? `${order.productos.length} productos` : order.productos[0]?.nombre}>
+                                {hasMultipleProducts ? (
+                                  `${order.cantidadTotal} items en total`
+                                ) : (
+                                  `${order.productos[0]?.nombre} (x${order.productos[0]?.cantidad})`
+                                )}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap w-[130px]">{formatCurrency(order.montoFactura)}</TableCell>
@@ -377,17 +380,24 @@ export default function DeliveriesPage() {
                         {/* Expanded row with product details */}
                         {isExpanded && hasMultipleProducts && (
                           <TableRow key={`${orderKey}-expanded`} className="bg-muted/20">
-                            <TableCell colSpan={11} className="py-2 px-4">
-                              <div className="ml-10 py-2">
-                                <p className="text-sm font-medium mb-2">Detalle de productos:</p>
-                                <ul className="space-y-1">
+                            <TableCell colSpan={11} className="py-3">
+                              <div className="ml-10">
+                                <p className="text-sm font-medium mb-3 text-muted-foreground">Detalle de productos:</p>
+                                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl">
                                   {order.productos.map((producto, idx) => (
-                                    <li key={idx} className="text-sm text-muted-foreground flex justify-between max-w-md">
-                                      <span>{producto.nombre}</span>
-                                      <span className="font-mono">x{producto.cantidad}</span>
-                                    </li>
+                                    <div
+                                      key={idx}
+                                      className="flex items-center justify-between bg-background/50 rounded-md px-3 py-2 border border-border/50"
+                                    >
+                                      <span className="text-sm text-foreground truncate flex-1 mr-2" title={producto.nombre}>
+                                        {producto.nombre}
+                                      </span>
+                                      <Badge variant="secondary" className="text-xs shrink-0">
+                                        x{producto.cantidad}
+                                      </Badge>
+                                    </div>
                                   ))}
-                                </ul>
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>

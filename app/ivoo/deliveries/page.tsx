@@ -389,9 +389,14 @@ export default function IVOODeliveriesPage() {
                               <div className="truncate" title={order.tienda}>{order.tienda}</div>
                             </TableCell>
                             <TableCell className="text-right w-[110px]">
-                              <Badge variant="outline" className="whitespace-nowrap">
-                                {order.cantidadTotal} {order.cantidadTotal === 1 ? "producto" : "productos"}
-                              </Badge>
+                              <div className="flex items-center justify-end gap-2">
+                                <Badge variant="outline" className="text-xs shrink-0">
+                                  {order.productos.length} {order.productos.length === 1 ? 'prod' : 'prods'}
+                                </Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  {order.cantidadTotal} {order.cantidadTotal === 1 ? 'item' : 'items'}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell className="text-right whitespace-nowrap w-[130px]">{formatCurrency(order.montoFactura)}</TableCell>
                             <TableCell className="w-[110px]">
@@ -404,17 +409,21 @@ export default function IVOODeliveriesPage() {
                           </TableRow>
                           {hasMultipleProducts && (
                             <CollapsibleContent asChild>
-                              <TableRow className="bg-muted/30 border-border/50">
+                              <TableRow className="bg-muted/20 border-border/50">
                                 <TableCell colSpan={11} className="py-3">
-                                  <div className="pl-10">
-                                    <p className="text-sm font-medium mb-2 text-muted-foreground">Detalle de productos:</p>
-                                    <div className="grid gap-1">
+                                  <div className="ml-10">
+                                    <p className="text-sm font-medium mb-3 text-muted-foreground">Detalle de productos:</p>
+                                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl">
                                       {order.productos.map((producto, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 text-sm">
-                                          <span className="text-muted-foreground">{idx + 1}.</span>
-                                          <span className="flex-1">{producto.nombre}</span>
-                                          <Badge variant="secondary" className="text-xs">
-                                            Cant: {producto.cantidad}
+                                        <div
+                                          key={idx}
+                                          className="flex items-center justify-between bg-background/50 rounded-md px-3 py-2 border border-border/50"
+                                        >
+                                          <span className="text-sm text-foreground truncate flex-1 mr-2" title={producto.nombre}>
+                                            {producto.nombre}
+                                          </span>
+                                          <Badge variant="secondary" className="text-xs shrink-0">
+                                            x{producto.cantidad}
                                           </Badge>
                                         </div>
                                       ))}
