@@ -20,6 +20,7 @@ import {
 import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Button } from "@/components/ui/button"
 import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
