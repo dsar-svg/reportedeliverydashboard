@@ -20,7 +20,7 @@ import {
 import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatCurrency, parseFlexibleDate, normalizeDateString } from "@/lib/dashboard-utils"
+import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
 const SHEET_RANGE = "DELIVERY TIENDA!A2:Q"
@@ -54,22 +54,30 @@ export default function ReportesPage() {
   const metrics = useMemo(() => {
     if (deliveryData.length === 0) return null
 
-    // Total de ingresos
-    const totalIngresos = deliveryData.reduce((sum, d) => sum + d.montoFactura, 0)
-    const totalDeliveryFees = deliveryData.reduce((sum, d) => sum + d.precioDelivery, 0)
+    // Agrupar por factura para obtener pedidos unicos
+    const groupedOrders = groupByFactura(deliveryData)
 
-    // Por estado
+    // Total de ingresos (solo una vez por factura)
+    const totalIngresos = groupedOrders.reduce((sum, d) => sum + d.montoFactura, 0)
+    const totalDeliveryFees = groupedOrders.reduce((sum, d) => sum + d.precioDelivery, 0)
+
+    // Por estado (contando por factura unica)
     const porEstado: Record<string, { count: number; monto: number }> = {}
-    deliveryData.forEach((d) => {
-      const estado = d.estado
-      if (!porEstado[estado]) porEstado[estado] = { count: 0, monto: 0 }
-      porEstado[estado].count++
-      porEstado[estado].monto += d.montoFactura
+    const estadosContados = new Set<string>()
+    groupedOrders.forEach((d) => {
+      const key = `${d.nroFactura}-${d.tienda}`
+      if (!estadosContados.has(key)) {
+        const estado = d.estado
+        if (!porEstado[estado]) porEstado[estado] = { count: 0, monto: 0 }
+        porEstado[estado].count++
+        porEstado[estado].monto += d.montoFactura
+        estadosContados.add(key)
+      }
     })
 
-    // Por tienda (top 10)
+    // Por tienda (top 10, contando por factura unica)
     const porTienda: Record<string, { count: number; monto: number }> = {}
-    deliveryData.forEach((d) => {
+    groupedOrders.forEach((d) => {
       if (!porTienda[d.tienda]) porTienda[d.tienda] = { count: 0, monto: 0 }
       porTienda[d.tienda].count++
       porTienda[d.tienda].monto += d.montoFactura
@@ -79,40 +87,41 @@ export default function ReportesPage() {
       .sort((a, b) => b.monto - a.monto)
       .slice(0, 10)
 
-    // Por tipo de vehiculo
+    // Por tipo de vehiculo (contando por factura unica)
     const porVehiculo: Record<string, number> = {}
-    deliveryData.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const vehiculo = d.tipoVehiculo || "Sin especificar"
       porVehiculo[vehiculo] = (porVehiculo[vehiculo] || 0) + 1
     })
 
-    // Por condicion de pago
+    // Por condicion de pago (contando por factura unica)
     const porCondicionPago: Record<string, number> = {}
-    deliveryData.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const condicion = d.condicionPago || "Sin especificar"
       porCondicionPago[condicion] = (porCondicionPago[condicion] || 0) + 1
     })
 
-    // Tendencia por semana
+    // Tendencia por semana (contando pedidos unicos)
     const porSemana: Record<string, { deliveries: number; ingresos: number }> = {}
-    deliveryData.forEach((d) => {
+    groupedOrders.forEach((d) => {
       const date = parseFlexibleDate(d.fecha)
       const weekStart = new Date(date)
       weekStart.setDate(date.getDate() - date.getDay())
       const weekKey = normalizeDateString(weekStart.toISOString())
       if (!porSemana[weekKey]) porSemana[weekKey] = { deliveries: 0, ingresos: 0 }
-      porSemana[weekKey].deliveries++
+      porSemana[weekKey].deliveries += 1
       porSemana[weekKey].ingresos += d.montoFactura
     })
     const tendenciaSemanal = Object.entries(porSemana)
       .map(([fecha, data]) => ({ fecha, ...data }))
       .sort((a, b) => parseFlexibleDate(a.fecha).getTime() - parseFlexibleDate(b.fecha).getTime())
 
-    // Promedio por delivery
-    const promedioMonto = totalIngresos / deliveryData.length
-    const promedioDeliveryFee = totalDeliveryFees / deliveryData.length
+    // Promedio por pedido
+    const totalPedidos = groupedOrders.length
+    const promedioMonto = totalIngresos / totalPedidos
+    const promedioDeliveryFee = totalDeliveryFees / totalPedidos
 
-    // Tasa de entrega exitosa (sumar todas las variantes de estados exitosos)
+    // Tasa de entrega exitosa (por factura unica)
     const estadosExitosos = ["entregado", "delivered", "completado", "complete"]
     let entregados = 0
     Object.entries(porEstado).forEach(([estado, data]) => {
@@ -120,10 +129,10 @@ export default function ReportesPage() {
         entregados += data.count
       }
     })
-    const tasaExito = (entregados / deliveryData.length) * 100
+    const tasaExito = totalPedidos > 0 ? (entregados / totalPedidos) * 100 : 0
 
     return {
-      totalDeliveries: deliveryData.length,
+      totalDeliveries: totalPedidos,
       totalIngresos,
       totalDeliveryFees,
       promedioMonto,
@@ -205,13 +214,13 @@ export default function ReportesPage() {
 
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deliveries</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
             <Package className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalDeliveries}</div>
             <p className="text-xs text-muted-foreground">
-              Registros totales en el sistema
+              Pedidos unicos (facturas) en el sistema
             </p>
           </CardContent>
         </Card>

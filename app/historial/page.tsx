@@ -539,7 +539,7 @@ export default function HistorialClientePage() {
                                 </div>
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap w-[110px]">
-                                {formatCurrency(factura.montoFactura)}
+                                {formatCurrency(factura.montoFactura - factura.precioDelivery)}
                               </TableCell>
                               <TableCell className="text-right whitespace-nowrap w-[100px]">
                                 {formatCurrency(factura.precioDelivery)}
