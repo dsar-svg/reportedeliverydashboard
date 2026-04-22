@@ -17,7 +17,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts"
-import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store } from "lucide-react"
+import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
@@ -49,6 +49,130 @@ export default function ReportesPage() {
   }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
 
   const deliveryData = response?.data || []
+
+  // Exportar a Excel
+  const handleExportExcel = async () => {
+    const XLSX = await import("xlsx")
+
+    // Crear libro de Excel
+    const wb = XLSX.utils.book_new()
+
+    // Hoja 1: Resumen de Métricas
+    const resumenData = [
+      ["REPORTE DE DELIVERIES - TIENDA"],
+      [`Fecha de generación: ${new Date().toLocaleDateString("es-VE", {
+        day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+      })}`],
+      [],
+      ["MÉTRICAS PRINCIPALES"],
+      ["Concepto", "Valor"],
+      ["Total Pedidos", metrics!.totalDeliveries],
+      ["Total Ingresos", `$${metrics!.totalIngresos.toFixed(2)}`],
+      ["Ingresos Delivery", `$${metrics!.totalDeliveryFees.toFixed(2)}`],
+      ["Promedio por Pedido", `$${metrics!.promedioMonto.toFixed(2)}`],
+      ["Promedio Delivery Fee", `$${metrics!.promedioDeliveryFee.toFixed(2)}`],
+      ["Tasa de Éxito", `${metrics!.tasaExito.toFixed(1)}%`],
+    ]
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData)
+
+    // Configurar anchos de columna
+    wsResumen["!cols"] = [{ wch: 30 }, { wch: 20 }]
+
+    // Estilos para encabezados (merge cells)
+    wsResumen["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, // Título principal
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } }, // Fecha
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } }, // Sección métricas
+    ]
+
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen")
+
+    // Hoja 2: Por Estado
+    const estadoData = [
+      ["DELIVERIES POR ESTADO"],
+      [],
+      ["Estado", "Cantidad", "Monto Total"],
+      ...metrics!.porEstado.map(e => [e.name, e.value, `$${e.monto.toFixed(2)}`]),
+      [],
+      ["Total", metrics!.porEstado.reduce((sum, e) => sum + e.value, 0),
+       `$${metrics!.porEstado.reduce((sum, e) => sum + e.monto, 0).toFixed(2)}`],
+    ]
+    const wsEstado = XLSX.utils.aoa_to_sheet(estadoData)
+    wsEstado["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 20 }]
+    wsEstado["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsEstado, "Por Estado")
+
+    // Hoja 3: Top 10 Tiendas
+    const tiendasData = [
+      ["TOP 10 TIENDAS POR INGRESOS"],
+      [],
+      ["#","Tienda", "Cantidad Pedidos", "Monto Total", "Promedio"],
+      ...metrics!.top10Tiendas.map((t, i) => [
+        i + 1,
+        t.name,
+        t.count,
+        `$${t.monto.toFixed(2)}`,
+        `$${(t.monto / t.count).toFixed(2)}`
+      ]),
+    ]
+    const wsTiendas = XLSX.utils.aoa_to_sheet(tiendasData)
+    wsTiendas["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }]
+    wsTiendas["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }]
+    XLSX.utils.book_append_sheet(wb, wsTiendas, "Top Tiendas")
+
+    // Hoja 4: Por Tipo de Vehículo
+    const vehiculoData = [
+      ["DELIVERIES POR TIPO DE VEHÍCULO"],
+      [],
+      ["Tipo de Vehículo", "Cantidad", "Porcentaje"],
+      ...metrics!.porVehiculo.map(v => [
+        v.name,
+        v.value,
+        `${((v.value / metrics!.totalDeliveries) * 100).toFixed(1)}%`
+      ]),
+    ]
+    const wsVehiculo = XLSX.utils.aoa_to_sheet(vehiculoData)
+    wsVehiculo["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }]
+    wsVehiculo["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsVehiculo, "Por Vehículo")
+
+    // Hoja 5: Por Condición de Pago
+    const pagoData = [
+      ["DELIVERIES POR CONDICIÓN DE PAGO"],
+      [],
+      ["Condición de Pago", "Cantidad", "Porcentaje"],
+      ...metrics!.porCondicionPago.map(p => [
+        p.name,
+        p.value,
+        `${((p.value / metrics!.totalDeliveries) * 100).toFixed(1)}%`
+      ]),
+    ]
+    const wsPago = XLSX.utils.aoa_to_sheet(pagoData)
+    wsPago["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }]
+    wsPago["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsPago, "Condición Pago")
+
+    // Hoja 6: Tendencia Semanal
+    const tendenciaData = [
+      ["TENDENCIA SEMANAL"],
+      [],
+      ["Semana desde", "Cantidad Pedidos", "Ingresos", "Promedio por Pedido"],
+      ...metrics!.tendenciaSemanal.map(t => [
+        parseFlexibleDate(t.fecha).toLocaleDateString("es-VE"),
+        t.deliveries,
+        `$${t.ingresos.toFixed(2)}`,
+        `$${(t.ingresos / t.deliveries).toFixed(2)}`
+      ]),
+    ]
+    const wsTendencia = XLSX.utils.aoa_to_sheet(tendenciaData)
+    wsTendencia["!cols"] = [{ wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 22 }]
+    wsTendencia["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }]
+    XLSX.utils.book_append_sheet(wb, wsTendencia, "Tendencia Semanal")
+
+    // Guardar archivo
+    const fechaStr = new Date().toISOString().split("T")[0]
+    XLSX.writeFile(wb, `reporte_delivery_tienda_${fechaStr}.xlsx`)
+  }
 
   // Calcular metricas avanzadas
   const metrics = useMemo(() => {
@@ -179,9 +303,15 @@ export default function ReportesPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Reportes y Estadisticas</h1>
-        <p className="text-muted-foreground">Analisis detallado de los datos de delivery</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Reportes y Estadisticas</h1>
+          <p className="text-muted-foreground">Analisis detallado de los datos de delivery</p>
+        </div>
+        <Button onClick={handleExportExcel} className="gap-2">
+          <Download className="size-4" />
+          Exportar Excel
+        </Button>
       </div>
 
       {/* KPIs principales */}

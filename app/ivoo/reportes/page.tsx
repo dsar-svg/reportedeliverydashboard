@@ -17,7 +17,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts"
-import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store } from "lucide-react"
+import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
@@ -53,6 +53,105 @@ export default function IVOOReportesPage() {
   const deliveryData = (response?.data || []).filter(
     (d) => d.tipoDespacho?.toLowerCase() !== "pickup"
   )
+
+  // Exportar a Excel
+  const handleExportExcel = async () => {
+    const XLSX = await import("xlsx")
+    const wb = XLSX.utils.book_new()
+
+    // Hoja 1: Resumen
+    const resumenData = [
+      ["REPORTE DE DELIVERIES - IVOO APP"],
+      [`Fecha: ${new Date().toLocaleDateString("es-VE", {
+        day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+      })}`],
+      [],
+      ["MÉTRICAS PRINCIPALES"],
+      ["Concepto", "Valor"],
+      ["Total Pedidos", metrics!.totalPedidos],
+      ["Total Ingresos", `$${metrics!.totalIngresos.toFixed(2)}`],
+      ["Ingresos Delivery", `$${metrics!.totalDeliveryFees.toFixed(2)}`],
+      ["Promedio por Pedido", `$${metrics!.promedioMonto.toFixed(2)}`],
+      ["Promedio Delivery Fee", `$${metrics!.promedioDeliveryFee.toFixed(2)}`],
+      ["Tasa de Éxito", `${metrics!.tasaExito.toFixed(1)}%`],
+    ]
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumenData)
+    wsResumen["!cols"] = [{ wch: 30 }, { wch: 20 }]
+    wsResumen["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 1 } },
+    ]
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen")
+
+    // Hoja 2: Por Estado
+    const estadoData = [
+      ["DELIVERIES POR ESTADO"],
+      [],
+      ["Estado", "Cantidad", "Monto Total"],
+      ...metrics!.porEstado.map(e => [e.name, e.value, `$${e.monto.toFixed(2)}`]),
+    ]
+    const wsEstado = XLSX.utils.aoa_to_sheet(estadoData)
+    wsEstado["!cols"] = [{ wch: 25 }, { wch: 15 }, { wch: 20 }]
+    wsEstado["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsEstado, "Por Estado")
+
+    // Hoja 3: Top Tiendas
+    const tiendasData = [
+      ["TOP 10 TIENDAS POR INGRESOS"],
+      [],
+      ["#", "Tienda", "Pedidos", "Monto Total", "Promedio"],
+      ...metrics!.top10Tiendas.map((t, i) => [
+        i + 1, t.name, t.count, `$${t.monto.toFixed(2)}`, `$${(t.monto / t.count).toFixed(2)}`
+      ]),
+    ]
+    const wsTiendas = XLSX.utils.aoa_to_sheet(tiendasData)
+    wsTiendas["!cols"] = [{ wch: 5 }, { wch: 30 }, { wch: 15 }, { wch: 18 }, { wch: 15 }]
+    wsTiendas["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }]
+    XLSX.utils.book_append_sheet(wb, wsTiendas, "Top Tiendas")
+
+    // Hoja 4: Por Vehículo
+    const vehiculoData = [
+      ["DELIVERIES POR VEHÍCULO"],
+      [],
+      ["Vehículo", "Cantidad", "Porcentaje"],
+      ...metrics!.porVehiculo.map(v => [v.name, v.value, `${((v.value / metrics!.totalPedidos) * 100).toFixed(1)}%`]),
+    ]
+    const wsVehiculo = XLSX.utils.aoa_to_sheet(vehiculoData)
+    wsVehiculo["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }]
+    wsVehiculo["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsVehiculo, "Por Vehículo")
+
+    // Hoja 5: Por Condición de Pago
+    const pagoData = [
+      ["POR CONDICIÓN DE PAGO"],
+      [],
+      ["Condición", "Cantidad", "Porcentaje"],
+      ...metrics!.porCondicionPago.map(p => [p.name, p.value, `${((p.value / metrics!.totalPedidos) * 100).toFixed(1)}%`]),
+    ]
+    const wsPago = XLSX.utils.aoa_to_sheet(pagoData)
+    wsPago["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }]
+    wsPago["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }]
+    XLSX.utils.book_append_sheet(wb, wsPago, "Condición Pago")
+
+    // Hoja 6: Tendencia Semanal
+    const tendenciaData = [
+      ["TENDENCIA SEMANAL"],
+      [],
+      ["Semana", "Pedidos", "Ingresos", "Promedio"],
+      ...metrics!.tendenciaSemanal.map(t => [
+        parseFlexibleDate(t.fecha).toLocaleDateString("es-VE"),
+        t.pedidos, `$${t.ingresos.toFixed(2)}`, `$${(t.ingresos / t.pedidos).toFixed(2)}`
+      ]),
+    ]
+    const wsTendencia = XLSX.utils.aoa_to_sheet(tendenciaData)
+    wsTendencia["!cols"] = [{ wch: 20 }, { wch: 15 }, { wch: 18 }, { wch: 18 }]
+    wsTendencia["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }]
+    XLSX.utils.book_append_sheet(wb, wsTendencia, "Tendencia")
+
+    const fechaStr = new Date().toISOString().split("T")[0]
+    XLSX.writeFile(wb, `reporte_ivoo_app_${fechaStr}.xlsx`)
+  }
 
   // Calcular metricas avanzadas (agrupando por factura + tienda)
   const metrics = useMemo(() => {
@@ -178,11 +277,17 @@ export default function IVOOReportesPage() {
 
   return (
     <div className="p-4 lg:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">
-          <span className="text-primary">IVOO APP</span> - Reportes y Estadisticas
-        </h1>
-        <p className="text-muted-foreground">Analisis detallado de los datos de delivery de IVOO</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">
+            <span className="text-primary">IVOO APP</span> - Reportes y Estadisticas
+          </h1>
+          <p className="text-muted-foreground">Analisis detallado de los datos de delivery de IVOO</p>
+        </div>
+        <Button onClick={handleExportExcel} className="gap-2">
+          <Download className="size-4" />
+          Exportar Excel
+        </Button>
       </div>
 
       {/* KPIs principales */}
