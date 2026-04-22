@@ -373,12 +373,16 @@ export default function ReportesPage() {
                     data={metrics.porEstado}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
+                    innerRadius={55}
+                    outerRadius={95}
                     paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => {
+                      const nameShort = name.length > 10 ? name.substring(0, 10) + "..." : name
+                      return `${nameShort} (${(percent * 100).toFixed(0)}%)`
+                    }}
                     labelLine={false}
+                    fontSize={10}
                     nameKey="name"
                   >
                     {metrics.porEstado.map((entry, index) => (
@@ -421,12 +425,16 @@ export default function ReportesPage() {
                     data={metrics.porVehiculo}
                     cx="50%"
                     cy="50%"
-                    innerRadius={50}
-                    outerRadius={90}
+                    innerRadius={55}
+                    outerRadius={95}
                     paddingAngle={3}
                     dataKey="value"
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => {
+                      const nameShort = name.length > 10 ? name.substring(0, 10) + "..." : name
+                      return `${nameShort} (${(percent * 100).toFixed(0)}%)`
+                    }}
                     labelLine={false}
+                    fontSize={10}
                     nameKey="name"
                   >
                     {metrics.porVehiculo.map((entry, index) => (
