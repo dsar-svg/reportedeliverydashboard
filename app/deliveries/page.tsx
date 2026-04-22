@@ -66,6 +66,11 @@ export default function DeliveriesPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
+  // Filtros adicionales
+  const [filtroEstado, setFiltroEstado] = useState<string>("all")
+  const [filtroVehiculo, setFiltroVehiculo] = useState<string>("all")
+  const [filtroTienda, setFiltroTienda] = useState<string>("all")
+
   // Toggle row expansion (usa factura + tienda como key unica)
   const toggleRow = (order: GroupedOrder) => {
     const key = `${order.nroFactura}__${order.tienda}`
@@ -83,6 +88,19 @@ export default function DeliveriesPage() {
   // Obtener key unica para un pedido
   const getOrderKey = (order: GroupedOrder) => `${order.nroFactura}__${order.tienda}`
 
+  // Obtener valores unicos para filtros
+  const uniqueEstados = useMemo(() => {
+    return [...new Set(groupedOrders.map(o => o.estado).filter(Boolean))]
+  }, [groupedOrders])
+
+  const uniqueVehiculos = useMemo(() => {
+    return [...new Set(groupedOrders.map(o => o.tipoVehiculo).filter(Boolean))]
+  }, [groupedOrders])
+
+  const uniqueTiendas = useMemo(() => {
+    return [...new Set(groupedOrders.map(o => o.tienda).filter(Boolean))]
+  }, [groupedOrders])
+
   // Filter and sort data
   const filteredData = useMemo(() => {
     let filtered = groupedOrders
@@ -98,6 +116,21 @@ export default function DeliveriesPage() {
         item.estado.toLowerCase().includes(searchLower) ||
         item.productos.some(p => p.nombre.toLowerCase().includes(searchLower))
       )
+    }
+
+    // Filtro por estado
+    if (filtroEstado && filtroEstado !== "all") {
+      filtered = filtered.filter(item => item.estado === filtroEstado)
+    }
+
+    // Filtro por tipo de vehiculo
+    if (filtroVehiculo && filtroVehiculo !== "all") {
+      filtered = filtered.filter(item => item.tipoVehiculo === filtroVehiculo)
+    }
+
+    // Filtro por tienda
+    if (filtroTienda && filtroTienda !== "all") {
+      filtered = filtered.filter(item => item.tienda === filtroTienda)
     }
 
     // Sort
@@ -150,41 +183,64 @@ export default function DeliveriesPage() {
     }
   }
 
-  // Export to CSV
-  const handleExportCSV = () => {
-    const headers = [
-      "Nro Factura", "Fecha", "Cliente", "Cedula", "Tienda", "Centro Distribucion",
-      "Productos", "Cantidad Total", "Monto Factura", "Condicion Pago",
-      "Estado", "Orden Despacho", "Fecha Despacho", "Tipo Despacho", "Tipo Vehiculo", "Precio Delivery"
-    ]
-    
-    const csvContent = [
-      headers.join(","),
+  // Export to Excel
+  const handleExportExcel = async () => {
+    const XLSX = await import("xlsx")
+    const wb = XLSX.utils.book_new()
+
+    // Hoja principal con todos los datos
+    const data = [
+      ["TABLA DE PEDIDOS - DELIVERY TIENDA"],
+      [`Fecha: ${new Date().toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}`],
+      [],
+      ["Nro Factura", "Fecha", "Cliente", "Cedula", "Tienda", "Productos", "Cantidad", "Monto", "Estado", "Vehiculo", "Delivery"],
       ...filteredData.map(item => [
         item.nroFactura,
-        item.fecha,
-        `"${item.nombreApellido}"`,
+        parseFlexibleDate(item.fecha).toLocaleDateString("es-VE"),
+        item.nombreApellido,
         item.cedula,
-        `"${item.tienda}"`,
-        `"${item.centroDistribucion}"`,
-        `"${item.productos.map(p => `${p.nombre} (x${p.cantidad})`).join('; ')}"`,
+        item.tienda,
+        item.productos.map(p => `${p.nombre} (x${p.cantidad})`).join("; "),
         item.cantidadTotal,
         item.montoFactura,
-        `"${item.condicionPago}"`,
         item.estado,
-        item.ordenDespacho,
-        item.fechaDespacho,
-        `"${item.tipoDespacho}"`,
-        `"${item.tipoVehiculo}"`,
+        item.tipoVehiculo,
         item.precioDelivery
-      ].join(","))
-    ].join("\n")
+      ]),
+    ]
+    const ws = XLSX.utils.aoa_to_sheet(data)
+    ws["!cols"] = [
+      { wch: 15 }, { wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 20 },
+      { wch: 35 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 12 }
+    ]
+    ws["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 10 } }
+    ]
+    XLSX.utils.book_append_sheet(wb, ws, "Pedidos")
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    link.href = URL.createObjectURL(blob)
-    link.download = `pedidos_${new Date().toISOString().split('T')[0]}.csv`
-    link.click()
+    // Hoja de resumen
+    const resumen = [
+      ["RESUMEN"],
+      [],
+      ["Total Pedidos:", filteredData.length],
+      ["Total Ingresos:", `$${filteredData.reduce((s, d) => s + d.montoFactura, 0).toFixed(2)}`],
+      ["Total Delivery:", `$${filteredData.reduce((s, d) => s + d.precioDelivery, 0).toFixed(2)}`],
+      [],
+      ["Por Estado:"],
+      ["Estado", "Cantidad"],
+      ...Object.entries(filteredData.reduce((acc, d) => {
+        acc[d.estado] = (acc[d.estado] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)).map(([k, v]) => [k, v]),
+    ]
+    const wsResumen = XLSX.utils.aoa_to_sheet(resumen)
+    wsResumen["!cols"] = [{ wch: 25 }, { wch: 15 }]
+    wsResumen["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }, { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } }, { s: { r: 6, c: 0 }, e: { r: 6, c: 1 } }]
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen")
+
+    const fechaStr = new Date().toISOString().split("T")[0]
+    XLSX.writeFile(wb, `pedidos_tienda_${fechaStr}.xlsx`)
   }
 
   if (isLoading) {
@@ -227,16 +283,16 @@ export default function DeliveriesPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleExportCSV}
+              onClick={handleExportExcel}
             >
               <Download className="mr-2 size-4" />
-              Exportar CSV
+              Exportar Excel
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {/* Search and filters */}
-          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -246,26 +302,67 @@ export default function DeliveriesPage() {
                 className="pl-9"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Mostrar:</span>
-              <Select
-                value={String(itemsPerPage)}
-                onValueChange={(value) => {
-                  setItemsPerPage(Number(value))
-                  setCurrentPage(1)
-                }}
-              >
-                <SelectTrigger className="w-20">
-                  <SelectValue />
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Filtro por Estado */}
+              <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                    <SelectItem key={option} value={String(option)}>
-                      {option}
-                    </SelectItem>
+                  <SelectItem value="all">Todos Estados</SelectItem>
+                  {uniqueEstados.map(estado => (
+                    <SelectItem key={estado} value={estado}>{estado}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Filtro por Vehiculo */}
+              <Select value={filtroVehiculo} onValueChange={setFiltroVehiculo}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Vehiculo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos Vehiculos</SelectItem>
+                  {uniqueVehiculos.map(vehiculo => (
+                    <SelectItem key={vehiculo} value={vehiculo}>{vehiculo}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Filtro por Tienda */}
+              <Select value={filtroTienda} onValueChange={setFiltroTienda}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Tienda" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas Tiendas</SelectItem>
+                  {uniqueTiendas.map(tienda => (
+                    <SelectItem key={tienda} value={tienda}>{tienda.replace("Tienda ", "")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Mostrar:</span>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={(value) => {
+                    setItemsPerPage(Number(value))
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option} value={String(option)}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
