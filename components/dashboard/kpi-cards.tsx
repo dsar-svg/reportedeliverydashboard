@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Package, DollarSign, Truck, TrendingUp, Wallet } from "lucide-react"
+import { Package, DollarSign, Truck, TrendingUp } from "lucide-react"
 import { formatCurrency, formatNumber } from "@/lib/dashboard-utils"
 import type { DashboardMetrics } from "@/lib/types"
 
@@ -24,16 +24,10 @@ export function KPICards({ metrics }: KPICardsProps) {
       description: "Monto total en facturas",
     },
     {
-      title: "Ingresos Delivery Brutos",
+      title: "Ingresos Delivery",
       value: formatCurrency(metrics.totalDeliveryFees),
       icon: Truck,
       description: "Total cobrado por envios",
-    },
-    {
-      title: "Ingresos Delivery Netos",
-      value: formatCurrency(metrics.netDeliveryFees),
-      icon: Wallet,
-      description: "Despues de costos de vehiculo",
     },
     {
       title: "Promedio Factura",

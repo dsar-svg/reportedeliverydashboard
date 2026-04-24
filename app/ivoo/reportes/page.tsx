@@ -17,11 +17,11 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts"
-import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Wallet, Store, Download } from "lucide-react"
+import { TrendingUp, TrendingDown, Package, DollarSign, Truck, Store, Download } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura, getDeliveryCost, calculateNetDeliveryFees, calculateTotalDeliveryCosts } from "@/lib/dashboard-utils"
+import { formatCurrency, parseFlexibleDate, normalizeDateString, groupByFactura } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 
 const SHEET_RANGE = "IVOO APP!A2:S"
@@ -71,9 +71,7 @@ export default function IVOOReportesPage() {
       ["Concepto", "Valor"],
       ["Total Pedidos", metrics!.totalPedidos],
       ["Total Ingresos", `$${metrics!.totalIngresos.toFixed(2)}`],
-      ["Ingresos Delivery Brutos", `$${metrics!.totalDeliveryFees.toFixed(2)}`],
-      ["Costos Delivery", `$${metrics!.totalDeliveryCosts.toFixed(2)}`],
-      ["Ingresos Delivery Netos", `$${metrics!.netDeliveryFees.toFixed(2)}`],
+      ["Ingresos Delivery", `$${metrics!.totalDeliveryFees.toFixed(2)}`],
       ["Promedio por Pedido", `$${metrics!.promedioMonto.toFixed(2)}`],
       ["Promedio Delivery Fee", `$${metrics!.promedioDeliveryFee.toFixed(2)}`],
       ["Tasa de Éxito", `${metrics!.tasaExito.toFixed(1)}%`],
@@ -167,8 +165,6 @@ export default function IVOOReportesPage() {
     // Total de ingresos (por pedidos unicos)
     const totalIngresos = groupedOrders.reduce((sum, d) => sum + d.montoFactura, 0)
     const totalDeliveryFees = groupedOrders.reduce((sum, d) => sum + d.precioDelivery, 0)
-    const totalDeliveryCosts = calculateTotalDeliveryCosts(groupedOrders)
-    const netDeliveryFees = calculateNetDeliveryFees(groupedOrders)
 
     // Por estado (contando pedidos, no lineas)
     const porEstado: Record<string, { count: number; monto: number }> = {}
@@ -238,8 +234,6 @@ export default function IVOOReportesPage() {
       totalPedidos,
       totalIngresos,
       totalDeliveryFees,
-      totalDeliveryCosts,
-      netDeliveryFees,
       promedioMonto,
       promedioDeliveryFee,
       tasaExito,
@@ -298,7 +292,7 @@ export default function IVOOReportesPage() {
       </div>
 
       {/* KPIs principales */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Ingresos</CardTitle>
@@ -314,39 +308,13 @@ export default function IVOOReportesPage() {
 
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos Delivery Brutos</CardTitle>
+            <CardTitle className="text-sm font-medium">Ingresos Delivery</CardTitle>
             <Truck className="size-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(metrics.totalDeliveryFees)}</div>
             <p className="text-xs text-muted-foreground">
-              Cobrado por envios
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Costos Delivery</CardTitle>
-            <Truck className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(metrics.totalDeliveryCosts)}</div>
-            <p className="text-xs text-muted-foreground">
-              Costos por tipo de vehiculo
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos Delivery Netos</CardTitle>
-            <Wallet className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(metrics.netDeliveryFees)}</div>
-            <p className="text-xs text-muted-foreground">
-              Ingreso real para la empresa
+              Promedio: {formatCurrency(metrics.promedioDeliveryFee)} por envio
             </p>
           </CardContent>
         </Card>
@@ -360,6 +328,23 @@ export default function IVOOReportesPage() {
             <div className="text-2xl font-bold">{metrics.totalPedidos}</div>
             <p className="text-xs text-muted-foreground">
               Pedidos unicos (facturas) en IVOO APP
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Tasa de Exito</CardTitle>
+            {metrics.tasaExito >= 80 ? (
+              <TrendingUp className="size-4 text-green-500" />
+            ) : (
+              <TrendingDown className="size-4 text-red-500" />
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.tasaExito.toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">
+              Pedidos entregados exitosamente
             </p>
           </CardContent>
         </Card>
