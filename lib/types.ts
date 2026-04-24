@@ -34,6 +34,8 @@ export interface DashboardMetrics {
   totalPedidos: number // Pedidos unicos (por factura)
   totalFacturado: number
   totalDeliveryFees: number
+  totalDeliveryCosts: number
+  netDeliveryFees: number
   promedioFactura: number
   deliveriesPorEstado: Record<string, number>
   deliveriesPorTienda: Record<string, number>

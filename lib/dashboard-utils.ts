@@ -1,6 +1,46 @@
 import type { DeliveryRecord, DashboardFilters, DashboardMetrics, GroupedOrder } from "./types"
 
 /**
+ * Obtiene el costo de delivery para un tipo de vehiculo desde localStorage
+ */
+export function getDeliveryCost(tipoVehiculo: string): number {
+  if (typeof window === 'undefined') return 0
+
+  try {
+    const costs = localStorage.getItem("delivery_costs")
+    if (!costs) return 0
+
+    const parsed = JSON.parse(costs) as Array<{ tipoVehiculo: string; costo: number }>
+    const match = parsed.find(
+      c => c.tipoVehiculo?.toLowerCase() === tipoVehiculo?.toLowerCase()
+    )
+    return match?.costo || 0
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * Calcula el ingreso neto de delivery restando los costos configurados
+ */
+export function calculateNetDeliveryFees(orders: GroupedOrder[]): number {
+  return orders.reduce((sum, order) => {
+    const costo = getDeliveryCost(order.tipoVehiculo)
+    const neto = order.precioDelivery - costo
+    return sum + (neto > 0 ? neto : 0) // Solo sumar si es positivo
+  }, 0)
+}
+
+/**
+ * Calcula el total de costos de delivery
+ */
+export function calculateTotalDeliveryCosts(orders: GroupedOrder[]): number {
+  return orders.reduce((sum, order) => {
+    return sum + getDeliveryCost(order.tipoVehiculo)
+  }, 0)
+}
+
+/**
  * Parse date string that could be in dd-mm-yyyy, dd/mm/yyyy, or yyyy-mm-dd format
  * Returns a normalized yyyy-mm-dd string for consistent sorting and comparison
  */
@@ -112,11 +152,13 @@ export function groupByFactura(data: DeliveryRecord[]): GroupedOrder[] {
 export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
   // Agrupar por factura para obtener pedidos unicos
   const groupedOrders = groupByFactura(data)
-  
-  const totalDeliveries = data.length // Lineas totales (productos)
+
+  const totalDeliveries = groupedOrders.length // Pedidos unicos
   const totalPedidos = groupedOrders.length // Pedidos unicos
   const totalFacturado = groupedOrders.reduce((sum, d) => sum + d.montoFactura, 0)
   const totalDeliveryFees = groupedOrders.reduce((sum, d) => sum + d.precioDelivery, 0)
+  const totalDeliveryCosts = calculateTotalDeliveryCosts(groupedOrders)
+  const netDeliveryFees = calculateNetDeliveryFees(groupedOrders)
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
@@ -150,6 +192,8 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     totalPedidos,
     totalFacturado,
     totalDeliveryFees,
+    totalDeliveryCosts,
+    netDeliveryFees,
     promedioFactura,
     deliveriesPorEstado,
     deliveriesPorTienda,
