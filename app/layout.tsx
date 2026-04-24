@@ -4,7 +4,6 @@ import { Analytics } from '@vercel/analytics/next'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Separator } from '@/components/ui/separator'
-import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -54,7 +53,6 @@ export default function RootLayout({
             </main>
           </SidebarInset>
         </SidebarProvider>
-        <Toaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
