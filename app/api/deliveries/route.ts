@@ -8,13 +8,14 @@ export async function GET(request: NextRequest) {
   const sheetRange = searchParams.get("range");
   try {
     // Check if Google Sheets credentials are configured
-    const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-    const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-    
+    // Priority: query params (from localStorage) > env vars
+    let sheetId = process.env.GOOGLE_SHEET_ID || searchParams.get("sheet_id");
+    let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || searchParams.get("private_key");
+    let clientEmail = process.env.GOOGLE_CLIENT_EMAIL || searchParams.get("client_email");
+
     // Check if we have either full JSON credentials OR separate credentials
     let isValidKey = false;
-    
+
     if (serviceAccountKey && sheetId) {
       // Try parsing as JSON first (full service account key)
       try {
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       } catch {
         // If not valid JSON, check if we have separate private key + client email
         // Check for various formats of private key header
-        const hasPrivateKey = serviceAccountKey.includes("PRIVATE KEY") || 
+        const hasPrivateKey = serviceAccountKey.includes("PRIVATE KEY") ||
                              serviceAccountKey.includes("-----BEGIN") ||
                              serviceAccountKey.includes("\\n");
         if (clientEmail && hasPrivateKey) {

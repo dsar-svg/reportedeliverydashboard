@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Save,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +28,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
@@ -41,15 +46,52 @@ interface ConfigStatus {
 }
 
 export default function ConfiguracionPage() {
+  // Construir URL con params del localStorage si existen
+  const getApiUrl = () => {
+    if (typeof window === "undefined") return "/api/deliveries"
+    const sheetId = localStorage.getItem("google_sheet_id")
+    const clientEmail = localStorage.getItem("google_client_email")
+    const privateKey = localStorage.getItem("google_private_key")
+    const sheetRange = localStorage.getItem("google_sheet_range")
+
+    const params = new URLSearchParams()
+    if (sheetId) params.set("sheet_id", sheetId)
+    if (clientEmail) params.set("client_email", clientEmail)
+    if (privateKey) params.set("private_key", privateKey)
+    if (sheetRange) params.set("range", sheetRange)
+
+    return params.toString() ? `/api/deliveries?${params.toString()}` : "/api/deliveries"
+  }
+
   const { data: response, isLoading, mutate } = useSWR<{
     data: unknown[]
     source: string
     message?: string
     error?: string
-  }>("/api/deliveries", fetcher)
+  }>(getApiUrl(), fetcher, {
+    refreshInterval: 0,
+    revalidateOnFocus: false,
+  })
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Estado para las variables editables
+  const [googleSheetId, setGoogleSheetId] = useState("")
+  const [googleClientEmail, setGoogleClientEmail] = useState("")
+  const [googlePrivateKey, setGooglePrivateKey] = useState("")
+  const [googleSheetRange, setGoogleSheetRange] = useState("")
+
+  // Cargar valores guardados en localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGoogleSheetId(localStorage.getItem("google_sheet_id") || "")
+      setGoogleClientEmail(localStorage.getItem("google_client_email") || "")
+      setGooglePrivateKey(localStorage.getItem("google_private_key") || "")
+      setGoogleSheetRange(localStorage.getItem("google_sheet_range") || "")
+    }
+  }, [])
 
   const status: ConfigStatus = {
     googleSheets: {
@@ -63,7 +105,14 @@ export default function ConfiguracionPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await mutate()
+    // Si hay configuracion guardada, pasarla como query params
+    const params = new URLSearchParams()
+    if (googleSheetId) params.set("sheet_id", googleSheetId)
+    if (googleClientEmail) params.set("client_email", googleClientEmail)
+    if (googlePrivateKey) params.set("private_key", googlePrivateKey)
+    if (googleSheetRange) params.set("range", googleSheetRange)
+
+    await mutate(`/api/deliveries?${params.toString()}`, { revalidate: true })
     setIsRefreshing(false)
   }
 
@@ -71,6 +120,24 @@ export default function ConfiguracionPage() {
     await navigator.clipboard.writeText(text)
     setCopiedIndex(index)
     setTimeout(() => setCopiedIndex(null), 2000)
+  }
+
+  const handleSaveConfig = async () => {
+    setIsSaving(true)
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("google_sheet_id", googleSheetId)
+        localStorage.setItem("google_client_email", googleClientEmail)
+        localStorage.setItem("google_private_key", googlePrivateKey)
+        localStorage.setItem("google_sheet_range", googleSheetRange)
+      }
+      toast.success("Configuracion guardada correctamente")
+      handleRefresh()
+    } catch (error) {
+      toast.error("Error al guardar la configuracion")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const envVars = [
@@ -195,6 +262,69 @@ export default function ConfiguracionPage() {
                   </div>
                 </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Configuracion de Google Sheets */}
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="size-5" />
+              Configuracion de Google Sheets
+            </CardTitle>
+            <CardDescription>
+              Edita las credenciales de conexion
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="sheetId">Google Sheet ID</Label>
+                <Input
+                  id="sheetId"
+                  value={googleSheetId}
+                  onChange={(e) => setGoogleSheetId(e.target.value)}
+                  placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientEmail">Google Client Email</Label>
+                <Input
+                  id="clientEmail"
+                  value={googleClientEmail}
+                  onChange={(e) => setGoogleClientEmail(e.target.value)}
+                  placeholder="your-service-account@project.iam.gserviceaccount.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="privateKey">Google Private Key</Label>
+                <Textarea
+                  id="privateKey"
+                  value={googlePrivateKey}
+                  onChange={(e) => setGooglePrivateKey(e.target.value)}
+                  placeholder="-----BEGIN PRIVATE KEY-----\nMIIEvQ..."
+                  className="font-mono text-xs"
+                  rows={4}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sheetRange">Google Sheet Range (opcional)</Label>
+                <Input
+                  id="sheetRange"
+                  value={googleSheetRange}
+                  onChange={(e) => setGoogleSheetRange(e.target.value)}
+                  placeholder="Sheet1!A2:Q"
+                />
+              </div>
+              <Button
+                onClick={handleSaveConfig}
+                disabled={isSaving}
+                className="w-full"
+              >
+                <Save className="mr-2 size-4" />
+                {isSaving ? "Guardando..." : "Guardar Configuracion"}
+              </Button>
             </div>
           </CardContent>
         </Card>
