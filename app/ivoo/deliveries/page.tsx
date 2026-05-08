@@ -105,10 +105,14 @@ function groupByFacturaTienda(data: DeliveryRecord[]): GroupedOrder[] {
 }
 
 export default function IVOODeliveriesPage() {
+  // Check if demo data should be used (from localStorage)
+  const useDemoData = typeof window !== "undefined" && localStorage.getItem("use_demo_data") === "true";
+  const apiUrl = `/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}${useDemoData ? "&demo=true" : ""}`;
+
   const { data: response, isLoading, mutate } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
+  }>(apiUrl, fetcher)
 
   // Filtrar ordenes que NO sean pickup (solo mostrar deliveries reales)
   const deliveryData = (response?.data || []).filter(

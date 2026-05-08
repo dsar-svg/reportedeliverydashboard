@@ -47,10 +47,14 @@ const getStatusVariant = (status: string): "default" | "secondary" | "destructiv
 }
 
 export default function DeliveriesPage() {
+  // Check if demo data should be used (from localStorage)
+  const useDemoData = typeof window !== "undefined" && localStorage.getItem("use_demo_data") === "true";
+  const apiUrl = `/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}${useDemoData ? "&demo=true" : ""}`;
+
   const { data: response, isLoading, mutate } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
+  }>(apiUrl, fetcher)
 
   const deliveryData = response?.data || []
 

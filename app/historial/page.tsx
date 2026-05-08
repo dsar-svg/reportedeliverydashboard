@@ -173,10 +173,14 @@ function calculateClientStats(deliveries: DeliveryRecord[]): ClientStats {
 }
 
 export default function HistorialClientePage() {
+  // Check if demo data should be used (from localStorage)
+  const useDemoData = typeof window !== "undefined" && localStorage.getItem("use_demo_data") === "true";
+  const apiUrl = `/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}${useDemoData ? "&demo=true" : ""}`;
+
   const { data: response, isLoading } = useSWR<{
     data: DeliveryRecord[]
     source: string
-  }>(`/api/deliveries?range=${encodeURIComponent(SHEET_RANGE)}`, fetcher)
+  }>(apiUrl, fetcher)
 
   const deliveryData = response?.data || []
 
