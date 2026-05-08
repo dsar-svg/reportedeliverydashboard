@@ -1,0 +1,44 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    @media (prefers-color-scheme: light) {
+      .background { fill: #1e293b; }
+      .foreground { fill: #f8fafc; }
+      .accent { fill: #3b82f6; }
+    }
+    @media (prefers-color-scheme: dark) {
+      .background { fill: #f8fafc; }
+      .foreground { fill: #1e293b; }
+      .accent { fill: #3b82f6; }
+    }
+  </style>
+  <rect width="180" height="180" rx="24" class="background"/>
+
+  <!-- Enhanced Delivery Truck -->
+  <g class="foreground">
+    <!-- Truck cabin -->
+    <rect x="30" y="90" width="50" height="35" rx="6" />
+    <!-- Truck bed -->
+    <rect x="30" y="70" width="120" height="20" rx="4" />
+    <!-- Wheels -->
+    <circle cx="50" cy="135" r="15" class="accent" />
+    <circle cx="130" cy="135" r="15" class="accent" />
+    <!-- Window -->
+    <rect x="40" y="100" width="15" height="15" rx="3" fill="currentColor" />
+    <!-- Door -->
+    <rect x="60" y="100" width="20" height="20" rx="4" fill="currentColor" />
+    <!-- Star on door -->
+    <polygon points="70,105 72,100 75,100 73,103 75,106 70,111 65,106 67,103 65,100 68,100" fill="currentColor" />
+  </g>
+
+  <!-- Dashboard chart element -->
+  <g class="foreground" opacity="0.8">
+    <rect x="90" y="40" width="60" height="50" rx="6" />
+    <rect x="95" y="45" width="12" height="40" rx="2" />
+    <rect x="112" y="50" width="12" height="30" rx="2" />
+    <rect x="129" y="55" width="12" height="20" rx="2" />
+  </g>
+
+  <!-- Text: "Delivery Dashboard" -->
+  <text x="90" y="165" font-family="Arial, sans-serif" font-size="14" fill="currentColor" text-anchor="middle">Delivery</text>
+  <text x="90" y="180" font-family="Arial, sans-serif" font-size="14" fill="currentColor" text-anchor="middle">Dashboard</text>
+</svg>
