@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "GOOGLE_SHEET_ID": "1aJ67--rYVLWO4OyuWPJKO6pevYs6rLUq2atslq51Eq4",
+    "GOOGLE_CLIENT_EMAIL": "reportes-delivery@testingivoo-12.iam.gserviceaccount.com"
+  },
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ]
+}
