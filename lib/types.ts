@@ -62,4 +62,5 @@ export interface GroupedOrder {
   tipoDespacho: string
   tipoVehiculo: string
   precioDelivery: number
+  gananciaDelivery: number
 }
