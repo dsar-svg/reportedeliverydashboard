@@ -36,6 +36,12 @@ export function KPICards({ metrics }: KPICardsProps) {
       description: "Total cobrado por envios",
     },
     {
+      title: "Ganancias en Delivery",
+      value: formatCurrency(metrics.totalGananciaDelivery),
+      icon: Truck,
+      description: "Suma de ganancias por delivery.",
+    },
+    {
       title: "Promedio Factura",
       value: formatCurrency(metrics.promedioFactura),
       icon: TrendingUp,
