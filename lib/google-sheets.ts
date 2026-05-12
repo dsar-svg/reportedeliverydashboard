@@ -45,7 +45,7 @@ export async function getDeliveryDataFromSheet(customRange?: string): Promise<De
   const sheets = google.sheets({ version: "v4", auth });
 
   const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-  const range = customRange || process.env.GOOGLE_SHEET_RANGE || "Sheet1!A2:S";
+  const range = customRange || process.env.GOOGLE_SHEET_RANGE || "Sheet1!A2:ZZ";
 
   if (!spreadsheetId) {
     throw new Error("GOOGLE_SHEET_ID is not configured");
@@ -83,6 +83,7 @@ export async function getDeliveryDataFromSheet(customRange?: string): Promise<De
       tipoDespacho: row[16] || "",                // Q - TIPO DE DESPACHO
       tipoVehiculo: row[17] || "",                // R - TIPO DE VEHICULO
       precioDelivery: parseFloat(row[18]?.replace(/[^0-9.-]/g, "")) || 0, // S - PRECIO DELIVERY
+      gananciaDelivery: parseFloat(row[19]?.replace(/[^0-9.-]/g, "")) || 0, // T - GANANCIA DELIVERY
     }));
   } else {
     // Mapeo para TIENDA (17 columnas: A-Q)
