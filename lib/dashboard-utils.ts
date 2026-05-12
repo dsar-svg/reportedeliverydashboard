@@ -123,7 +123,13 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     return sum + (isNaN(val) ? 0 : val)
   }, 0)
 
-  const totalGananciaDelivery = groupedOrders.reduce((sum, d) => sum + d.gananciaDelivery, 0)
+  const totalGananciaDelivery = groupedOrders.reduce((sum, d) => {
+  const val = d.gananciaDelivery || 0;
+  console.log(`[DEBUG GANANCIA] Factura: ${d.nroFactura} | Valor: ${val}`);
+  return sum + val;
+  }, 0)
+  console.log(`[DEBUG GANANCIA] Total Pedidos: ${groupedOrders.length} | Suma Final: ${totalGananciaDelivery}`);
+  
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
