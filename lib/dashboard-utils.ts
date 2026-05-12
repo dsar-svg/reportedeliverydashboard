@@ -117,6 +117,10 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
   const totalPedidos = groupedOrders.length // Pedidos unicos
   const totalFacturado = groupedOrders.reduce((sum, d) => sum + d.montoFactura, 0)
   const totalDeliveryFees = groupedOrders.reduce((sum, d) => sum + d.precioDelivery, 0)
+  const totalProvision = data.reduce((sum, record) => {
+    const val = parseFloat(record.provision?.replace(/[^0-9.-]+/g, "") || "0")
+    return sum + (isNaN(val) ? 0 : val)
+  }, 0)
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
@@ -150,6 +154,7 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     totalPedidos,
     totalFacturado,
     totalDeliveryFees,
+    totalProvision,
     promedioFactura,
     deliveriesPorEstado,
     deliveriesPorTienda,
