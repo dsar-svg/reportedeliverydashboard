@@ -24,6 +24,12 @@ export function KPICards({ metrics }: KPICardsProps) {
       description: "Total de Facturas emitidas.",
     },
     {
+      title: "Monto total en iniciales de Cashea",
+      value: formatCurrency(metrics.totalProvision),
+      icon: DollarSign,
+      description: "Suma de provisiones de Cashea.",
+    },
+    {
       title: "Ingresos Delivery",
       value: formatCurrency(metrics.totalDeliveryFees),
       icon: Truck,
