@@ -18,10 +18,10 @@ export function KPICards({ metrics }: KPICardsProps) {
       description: "Pedidos unicos (facturas)",
     },
     {
-      title: "Total Facturado",
+      title: "Monto total en facturas",
       value: formatCurrency(metrics.totalFacturado),
       icon: DollarSign,
-      description: "Monto total en facturas",
+      description: "Total de Facturas emitidas.",
     },
     {
       title: "Ingresos Delivery",
