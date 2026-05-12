@@ -18,6 +18,7 @@ export interface DeliveryRecord {
   tipoDespacho: string
   tipoVehiculo: string
   precioDelivery: number
+  gananciaDelivery: number
 }
 
 export interface DashboardFilters {
@@ -35,6 +36,7 @@ export interface DashboardMetrics {
   totalFacturado: number
   totalDeliveryFees: number
   totalProvision: number
+  totalGananciaDelivery: number
   promedioFactura: number
   deliveriesPorEstado: Record<string, number>
   deliveriesPorTienda: Record<string, number>
