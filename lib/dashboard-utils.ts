@@ -95,6 +95,7 @@ export function groupByFactura(data: DeliveryRecord[]): GroupedOrder[] {
         tipoDespacho: record.tipoDespacho,
         tipoVehiculo: record.tipoVehiculo,
         precioDelivery: record.precioDelivery, // El precio delivery es el mismo para todas las lineas
+        gananciaDelivery: record.gananciaDelivery,
       })
     }
 
@@ -121,10 +122,8 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     const val = parseFloat(record.provision?.replace(/[^0-9.-]+/g, "") || "0")
     return sum + (isNaN(val) ? 0 : val)
   }, 0)
-  const totalGananciaDelivery = data.reduce((sum, record) => {
-    const val = parseFloat(String(record.gananciaDelivery || "0").replace(/[^0-9.-]+/g, ""))
-    return sum + (isNaN(val) ? 0 : val)
-  }, 0)
+
+  const totalGananciaDelivery = groupedOrders.reduce((sum, d) => sum + d.gananciaDelivery, 0)
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
