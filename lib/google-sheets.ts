@@ -73,7 +73,7 @@ export async function getDeliveryDataFromSheet(customRange?: string): Promise<De
       producto: row[6] || "",                     // G - NOMBRE DEL PRODUCTO
       cantidad: parseInt(row[7]) || 0,            // H - CANTIDAD
       nroFactura: row[8] || "",                   // I - NRO FACTURA
-      montoFactura: parseFloat(row[9]?.replace(/[^0-9.-]/g, "")) || 0, // J - MONTO DE FACTURA
+      montoFactura: parseFloat((row[9] || "0").toString().replace(",", ".").replace(/[^0-9.-]/g, "")) || 0, // J - MONTO DE FACTURA
       provision: row[10] || "",                   // K - PROVISION
       moneda: row[11] || "",                      // L - MONEDA
       condicionPago: row[12] || "",               // M - TIPO DE PAGO
@@ -82,8 +82,8 @@ export async function getDeliveryDataFromSheet(customRange?: string): Promise<De
       fechaDespacho: row[15] || "",               // P - FECHA DE DESPACHO
       tipoDespacho: row[16] || "",                // Q - TIPO DE DESPACHO
       tipoVehiculo: row[17] || "",                // R - TIPO DE VEHICULO
-      precioDelivery: parseFloat(row[18]?.replace(/[^0-9.-]/g, "")) || 0, // S - PRECIO DELIVERY
-      gananciaDelivery: parseFloat(row[21]?.replace(/[^0-9.-]/g, "")) || 0, // T - GANANCIA DELIVERY
+      precioDelivery: parseFloat((row[18] || "0").toString().replace(",", ".").replace(/[^0-9.-]/g, "")) || 0, // S PRECIO DELIVERY
+      gananciaDelivery: parseFloat((row[21] || "0").toString().replace(",", ".").replace(/[^0-9.-]/g, "")) || 0, // V - GANANCIA DELIVERY
     }));
   } else {
     // Mapeo para TIENDA (17 columnas: A-Q)
