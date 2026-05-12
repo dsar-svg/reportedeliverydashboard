@@ -83,7 +83,7 @@ export async function getDeliveryDataFromSheet(customRange?: string): Promise<De
       tipoDespacho: row[16] || "",                // Q - TIPO DE DESPACHO
       tipoVehiculo: row[17] || "",                // R - TIPO DE VEHICULO
       precioDelivery: parseFloat(row[18]?.replace(/[^0-9.-]/g, "")) || 0, // S - PRECIO DELIVERY
-      gananciaDelivery: parseFloat(row[22]?.replace(/[^0-9.-]/g, "")) || 0, // T - GANANCIA DELIVERY
+      gananciaDelivery: parseFloat(row[21]?.replace(/[^0-9.-]/g, "")) || 0, // T - GANANCIA DELIVERY
     }));
   } else {
     // Mapeo para TIENDA (17 columnas: A-Q)
