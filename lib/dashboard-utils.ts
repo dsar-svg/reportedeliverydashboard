@@ -121,6 +121,10 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     const val = parseFloat(record.provision?.replace(/[^0-9.-]+/g, "") || "0")
     return sum + (isNaN(val) ? 0 : val)
   }, 0)
+  const totalGananciaDelivery = data.reduce((sum, record) => {
+    const val = parseFloat(String(record.gananciaDelivery || "0").replace(/[^0-9.-]+/g, ""))
+    return sum + (isNaN(val) ? 0 : val)
+  }, 0)
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
@@ -155,6 +159,7 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
     totalFacturado,
     totalDeliveryFees,
     totalProvision,
+    totalGananciaDelivery,
     promedioFactura,
     deliveriesPorEstado,
     deliveriesPorTienda,
