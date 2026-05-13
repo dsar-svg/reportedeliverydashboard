@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
+import { Calendar as CalendarIcon } from "lucide-react"
 import { filterDeliveriesByStorePerformance, aggregateStorePerformance } from "@/lib/dashboard-utils"
 import type { DeliveryRecord } from "@/lib/types"
 import { ArrowUpDown } from "lucide-react"
@@ -28,6 +30,27 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
   const [dateTo, setDateTo] = useState<string>("")
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const setQuickPeriod = (period: 'today' | 'week' | 'month' | 'thisMonth') => {
+    const now = new Date()
+    let from = new Date()
+    let to = new Date()
+
+    if (period === 'today') {
+      // Today is already handled by from/to being now
+    } else if (period === 'week') {
+      from.setDate(now.getDate() - 7)
+    } else if (period === 'month') {
+      from.setDate(now.getDate() - 30)
+    } else if (period === 'thisMonth') {
+      from = new Date(now.getFullYear(), now.getMonth(), 1)
+    }
+
+    const formatDate = (date: Date) => date.toISOString().split('T')[0]
+    setDateFrom(formatDate(from))
+    setDateTo(formatDate(to))
+  }
+
 
   const deliveryData = (response?.data || [])
 
@@ -76,11 +99,29 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-2">
             <Label>Desde</Label>
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            <div className="relative">
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="cursor-pointer pl-3 pr-10"
+                onClick={(e) => e.target.showPicker()}
+              />
+              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Hasta</Label>
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            <div className="relative">
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="cursor-pointer pl-3 pr-10"
+                onClick={(e) => e.target.showPicker()}
+              />
+              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Estados (Selección Múltiple)</Label>
@@ -104,6 +145,14 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
             </div>
           </div>
         </CardContent>
+        <div className="p-6 pt-0 flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setQuickPeriod('today')}>Hoy</Button>
+          <Button variant="outline" size="sm" onClick={() => setQuickPeriod('week')}>Últimos 7 días</Button>
+          <Button variant="outline" size="sm" onClick={() => setQuickPeriod('month')}>Últimos 30 días</Button>
+          <Button variant="outline" size="sm" onClick={() => setQuickPeriod('thisMonth')}>Este Mes</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }}>Limpiar Fechas</Button>
+        </div>
+      </Card>
       </Card>
 
       <Card>
