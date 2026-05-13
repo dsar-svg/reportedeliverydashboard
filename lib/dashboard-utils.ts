@@ -64,6 +64,51 @@ export function filterDeliveries(
 }
 
 /**
+ * Filtra entregas basándose en un rango de fechas y una lista de estados seleccionados.
+ */
+export function filterDeliveriesByStorePerformance(
+  data: DeliveryRecord[],
+  dateRange: { from: Date | undefined; to: Date | undefined },
+  selectedStatuses: string[]
+): DeliveryRecord[] {
+  return data.filter((record) => {
+    const recordDate = parseFlexibleDate(record.fecha);
+
+    if (dateRange.from && recordDate < dateRange.from) return false;
+    if (dateRange.to && recordDate > dateRange.to) return false;
+    if (selectedStatuses.length > 0 && !selectedStatuses.includes(record.estado)) return false;
+
+    return true;
+  });
+}
+
+/**
+ * Agrupa datos por tienda para el análisis de rendimiento.
+ */
+export function aggregateStorePerformance(data: DeliveryRecord[]) {
+  const storesMap = new Map<string, { total: number; statuses: Record<string, number> }>();
+
+  data.forEach((record) => {
+    const storeName = record.tienda || "Sin Tienda";
+    const status = record.estado || "S/E";
+
+    if (!storesMap.has(storeName)) {
+      storesMap.set(storeName, { total: 0, statuses: {} });
+    }
+
+    const storeData = storesMap.get(storeName)!;
+    storeData.total += 1;
+    storeData.statuses[status] = (storeData.statuses[status] || 0) + 1;
+  });
+
+  return Array.from(storesMap.entries()).map(([name, stats]) => ({
+    name,
+    ...stats,
+  }));
+}
+
+
+/**
  * Agrupa los registros por numero de factura + tienda para obtener pedidos unicos.
  * Se usa factura + tienda como clave porque los numeros de factura pueden repetirse
  * entre diferentes tiendas o clientes.
@@ -124,12 +169,13 @@ export function calculateMetrics(data: DeliveryRecord[]): DashboardMetrics {
   }, 0)
 
   const totalGananciaDelivery = groupedOrders.reduce((sum, d) => {
-  const val = d.gananciaDelivery || 0;
-  console.log(`[DEBUG GANANCIA] Factura: ${d.nroFactura} | Valor: ${val}`);
-  return sum + val;
+    const val = d.gananciaDelivery || 0;
+    console.log(`[DEBUG GANANCIA] Factura: ${d.nroFactura} | Valor: ${val}`);
+    return sum + val;
   }, 0)
+
   console.log(`[DEBUG GANANCIA] Total Pedidos: ${groupedOrders.length} | Suma Final: ${totalGananciaDelivery}`);
-  
+
   const promedioFactura = totalPedidos > 0 ? totalFacturado / totalPedidos : 0
 
   const deliveriesPorEstado: Record<string, number> = {}
