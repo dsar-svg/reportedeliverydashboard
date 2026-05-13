@@ -104,7 +104,7 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="cursor-pointer pl-3 pr-10"
+                className="cursor-pointer pl-3 pr-10 [appearance:none] [&::-webkit-calendar-picker-indicator]:opacity-0"
                 onClick={(e) => e.target.showPicker()}
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
@@ -117,7 +117,7 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="cursor-pointer pl-3 pr-10"
+                 className="cursor-pointer pl-3 pr-10 [appearance:none] [&::-webkit-calendar-picker-indicator]:opacity-0"
                 onClick={(e) => e.target.showPicker()}
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
