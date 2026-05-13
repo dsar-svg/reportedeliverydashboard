@@ -6,7 +6,7 @@ export default function GeneralStorePerformancePage() {
   return (
     <div className="p-4 lg:p-6">
       <StorePerformanceView
-        sheetRange="Sheet1!A2:ZZ"
+        sheetRange="DELIVERY TIENDA!A2:ZZ"
         title="Rendimiento de Tiendas (General)"
       />
     </div>
