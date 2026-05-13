@@ -39,6 +39,11 @@ const menuItems = [
     icon: Table,
   },
   {
+    title: "Rendimiento Tiendas",
+    url: "/rendimiento-tiendas",
+    icon: Store,
+   }, 
+  {
     title: "Reportes",
     url: "/reportes",
     icon: BarChart3,
