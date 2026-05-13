@@ -67,6 +67,11 @@ const ivooMenuItems = [
     icon: BarChart3,
   },
   {
+    title: "Rendimiento Tiendas",
+    url: "/ivoo/rendimiento-tiendas",
+    icon: Store,
+  },
+  {
     title: "Historial Cliente",
     url: "/ivoo/historial",
     icon: UserSearch,
