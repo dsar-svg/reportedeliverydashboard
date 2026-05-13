@@ -153,7 +153,7 @@ export function StorePerformanceView({ sheetRange, title }: StorePerformanceView
           <Button variant="ghost" size="sm" onClick={() => { setDateFrom(""); setDateTo(""); }}>Limpiar Fechas</Button>
         </div>
       </Card>
-      </Card>
+      
 
       <Card>
         <CardHeader>
